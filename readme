@@ -1,1 +1,23 @@
-readme
+Running the Notebook as a Workflow
+To run the notebook as a workflow in Databricks, follow these steps:
+
+Create a New Job:
+
+Go to the Jobs tab in the Databricks workspace.
+Click on "Create Job".
+Configure the Job:
+
+Name your job.
+Select the notebook you created above.
+Choose an existing cluster or create a new one to run the job.
+Schedule the Job:
+
+You can schedule the job to run periodically by setting the schedule settings.
+Run the Job:
+
+Click "Run Now" to start the job immediately.
+Example Workflow Configuration
+Job Name: Health News Aggregator
+Notebook Path: /Workspace/YourFolder/NewsAggregatorNotebook
+Cluster: Choose an existing cluster or create a new one.
+Schedule: Set to run every hour, daily, weekly, etc., based on your preference.
