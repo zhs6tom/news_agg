@@ -1,1 +1,64 @@
+# Install necessary libraries
+%pip install requests pandas openai
 
+# Import libraries
+import os
+import requests
+import openai
+import pandas as pd
+
+# Store your API keys securely
+GNEWS_API_KEY = 'your_gnews_api_key'
+BING_NEWS_API_KEY = 'your_bing_news_api_key'
+OPENAI_API_KEY = 'your_openai_api_key'
+
+# Set environment variables for OpenAI
+os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
+
+# Fetch articles from GNews
+def fetch_gnews_articles(api_key, query, language='en'):
+    url = f'https://gnews.io/api/v4/search?q={query}&token={api_key}&lang={language}'
+    response = requests.get(url)
+    return response.json().get('articles', [])
+
+# Fetch articles from Bing News
+def fetch_bing_news_articles(api_key, query):
+    url = f'https://api.bing.microsoft.com/v7.0/news/search?q={query}'
+    headers = {'Ocp-Apim-Subscription-Key': api_key}
+    response = requests.get(url, headers=headers)
+    return response.json().get('value', [])
+
+# Fetch articles
+gnews_articles = fetch_gnews_articles(GNEWS_API_KEY, 'health')
+bing_news_articles = fetch_bing_news_articles(BING_NEWS_API_KEY, 'health')
+
+# Categorize articles using OpenAI
+def categorize_articles(articles, category):
+    categorized_articles = []
+    for article in articles:
+        prompt = f"Categorize the following article into categories: health, technology, finance, sports. Article: {article['title']} {article['description']}"
+        response = openai.Completion.create(
+            engine="davinci",
+            prompt=prompt,
+            max_tokens=50
+        )
+        category_response = response.choices[0].text.strip().lower()
+        if category in category_response:
+            categorized_articles.append(article)
+    return categorized_articles
+
+# Categorize articles
+categorized_gnews_articles = categorize_articles(gnews_articles, 'health')
+categorized_bing_news_articles = categorize_articles(bing_news_articles, 'health')
+
+# Combine articles
+all_articles = categorized_gnews_articles + categorized_bing_news_articles
+
+# Create a DataFrame
+df = pd.DataFrame(all_articles)
+
+# Display DataFrame
+df.display()
+
+# Save to Databricks SQL table
+df.write.format("delta").mode("overwrite").saveAsTable("health_news_articles")
